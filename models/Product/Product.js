@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid"); // Import the uuid function
 
 // Sub-schema for Size
 const sizeSchema = new mongoose.Schema({
   id: {
     type: String,
+    default: uuidv4,
     unique: true,
   },
   name: {
@@ -16,6 +18,7 @@ const sizeSchema = new mongoose.Schema({
 const colorSchema = new mongoose.Schema({
   id: {
     type: String,
+    default: uuidv4,
     unique: true,
   },
   name: {
