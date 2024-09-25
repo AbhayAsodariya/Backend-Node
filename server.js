@@ -3,23 +3,20 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const db = require("./db"); // Import the MongoDB connection
-const passport = require("passport");
 require("dotenv").config();
 
-const personRoutes = require("./routes/personRoutes");
-const menuItemRoutes = require("./routes/menuItemRoutes");
+const personRoutes = require("./routes/Person/personRoutes");
+const productRoutes = require("./routes/Product/productRoutes")
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(passport.initialize());
-
 
 // Routes
 app.use("/person", personRoutes);
-app.use("/menu", menuItemRoutes);
+app.use("/products", productRoutes);
 
 // Start the Server
 const PORT = process.env.PORT || 5000;
