@@ -5,6 +5,7 @@ const {
   editProduct,
   deleteProduct,
   createGlobleProduct,
+  getGlobalProducts,
 } = require("../../controllers/Product/Product-controller");
 const { jwtAuthMiddleware } = require("../../middleware/authMiddleware");
 
@@ -12,6 +13,7 @@ const router = express.Router();
 
 router.post("/profile/:id", jwtAuthMiddleware, createAddToCart);
 router.post("/", createGlobleProduct);
+router.post("/", getGlobalProducts);
 router.get("/:id", getProductById); // Get product by ID
 router.post("/:id", jwtAuthMiddleware, editProduct); // Edit product using POST
 router.delete("/:id", jwtAuthMiddleware, deleteProduct); // Delete product
