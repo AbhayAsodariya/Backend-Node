@@ -113,4 +113,21 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { register, login, editUser, deleteUser, jwtAuthMiddleware };
+// Get User by ID Controller
+const getUserById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find user by ID
+    const user = await Person.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+module.exports = { register, login, editUser, deleteUser, getUserById, jwtAuthMiddleware };
