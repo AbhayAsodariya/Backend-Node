@@ -113,13 +113,11 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Get User by ID Controller
-const getUserById = async (req, res) => {
-  const { id } = req.params;
-
+// Get Logged-in User Data Controller
+const getUserData = async (req, res) => {
   try {
-    // Find user by ID
-    const user = await Person.findById(id);
+    // Use the user ID from the JWT token (set by jwtAuthMiddleware)
+    const user = await Person.findById(req.user.id).select("-password"); // Exclude password from the response
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -130,4 +128,4 @@ const getUserById = async (req, res) => {
   }
 };
 
-module.exports = { register, login, editUser, deleteUser, getUserById, jwtAuthMiddleware };
+module.exports = { register, login, editUser, deleteUser, getUserData, jwtAuthMiddleware };
