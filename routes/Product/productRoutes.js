@@ -22,7 +22,7 @@ router.post("/profile/:id", jwtAuthMiddleware, createAddToCart);
 router.post("/", createGlobleProduct);
 router.get("/", getGlobalProducts);
 router.get("/:id", getProductById);
-router.post("/:id",  editProduct);
-router.delete("/:id", deleteProduct);
+router.post("/edit/:id",  editProduct);
+router.delete("/delete/:id", deleteProduct);
 
 module.exports = router;
