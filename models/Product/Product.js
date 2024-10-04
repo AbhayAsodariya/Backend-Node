@@ -1,36 +1,47 @@
 const mongoose = require("mongoose");
-const { v4: uuidv4 } = require("uuid"); // Import the uuid function
+const { v4: uuidv4 } = require("uuid");
 
-// Sub-schema for Size
-const sizeSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    default: uuidv4,
-    unique: true,
-  },
+// Category Schema
+const categorySchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: true
   },
+  description: String
 });
 
-// Sub-schema for Color
-const colorSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    default: uuidv4,
-    unique: true,
-  },
+// Option Schema
+const optionSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: true
   },
+  value: {
+    type: String,
+    required: true
+  }
 });
 
-// Variant Schema
-const variantSchema = new mongoose.Schema({
-  sizes: [sizeSchema],
-  colors: [colorSchema],
+// SKU Schema
+const skuSchema = new mongoose.Schema({
+  sku: {
+    type: String,
+    required: true,
+    unique: true,
+    default: () => uuidv4()
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true
+  },
+  category: categorySchema,
+  options: [optionSchema]
 });
 
 // Base Product Schema
@@ -52,7 +63,17 @@ const baseProductSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  variants: [variantSchema],
+  sku: {
+    type: String,
+    required: true,
+    unique: true,
+    default: () => uuidv4()
+  },
+  category: categorySchema,
+  availableOptions: [{
+    name: String,
+    values: [String]
+  }]
 });
 
 // Schema for Global Product
@@ -73,4 +94,6 @@ const productAddToCartSchema = new mongoose.Schema({
 module.exports = {
   Product: mongoose.model("Product", productSchema),
   ProductAddToCart: mongoose.model("ProductAddToCart", productAddToCartSchema),
+  SKU: mongoose.model("SKU", skuSchema),
+  Category: mongoose.model("Category", categorySchema)
 };
