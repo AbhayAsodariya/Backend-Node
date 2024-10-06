@@ -14,7 +14,7 @@ const { jwtAuthMiddleware } = require("../../middleware/authMiddleware");
 const router = express.Router();
 
 // SKU Routes
-router.post("/sku", createSKU);  // Route to create a SKU
+router.post("/:sku", createSKU);  // Route to create a SKU
 router.put("/sku/:id", jwtAuthMiddleware, editSKU);  // Route to edit SKU
 
 // Existing product routes
