@@ -192,9 +192,15 @@ const createSKUFromOptions = async (req, res) => {
     );
 
     if (existingSku) {
-      // If SKU exists, replace its quantity and price
-      existingSku.quantity = quantity;
-      existingSku.price = price;
+      // If SKU exists, update only the quantity, and optionally the price if provided
+      if (quantity !== undefined) {
+        existingSku.quantity = quantity;
+      }
+
+      if (price !== undefined) {
+        existingSku.price = price;
+      }
+
       await product.save(); // Save the updated product
 
       return res.status(200).json({
@@ -232,12 +238,6 @@ const createSKUFromOptions = async (req, res) => {
   }
 };
 
-
-
-
-
-
-// Get all SKUs for a product
 const getSKUsForProduct = async (req, res) => {
   try {
     const { productId } = req.params;
