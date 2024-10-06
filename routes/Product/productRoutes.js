@@ -6,7 +6,8 @@ const {
   deleteProduct,
   createGlobalProduct,
   getGlobalProducts,
-  createSKU,
+  getProductOptions,
+  createSKUFromOptions,
   getSKUsForProduct,
   getAvailableProducts,
   createOrder
@@ -21,7 +22,8 @@ router.get("/available", getAvailableProducts);
 router.get("/:id", getProductById);
 router.post("/:id", editProduct);
 router.delete("/:id", deleteProduct);
-router.post("/:productId/sku", createSKU);
+router.get("/:productId/options", getProductOptions);
+router.post("/:productId/sku-from-options", createSKUFromOptions);
 router.get("/:productId/skus", getSKUsForProduct);
 
 // Protected routes

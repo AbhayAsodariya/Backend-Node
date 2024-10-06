@@ -113,34 +113,107 @@ const getProductById = async (req, res) => {
   }
 };
 
-// Create SKU for a product
-const createSKU = async (req, res) => {
+// Controller functions
+const getProductOptions = async (req, res) => {
   try {
-    const productId = req.params.productId; // Get productId from URL parameter
-    const { sku, quantity, price, optionValues } = req.body;
+    const { productId } = req.params;
     
     const product = await Product.findById(productId);
-    
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // Return product details and options
+    res.status(200).json({
+      productId: product._id,
+      name: product.name,
+      options: product.options,
+      existingSKUs: product.skus.map(sku => ({
+        sku: sku.sku,
+        optionValues: sku.optionValues
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching product options", error });
+  }
+};
+
+const createSKUFromOptions = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { optionValues, quantity, price } = req.body;
+    
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Validate all required options are provided
+    const missingOptions = product.options
+      .map(option => option.name)
+      .filter(optionName => !optionValues[optionName]);
+    
+    if (missingOptions.length > 0) {
+      return res.status(400).json({
+        message: "Missing option values",
+        missingOptions
+      });
+    }
+
+    // Validate option values
+    const invalidOptions = [];
+    for (const [optionName, value] of Object.entries(optionValues)) {
+      const option = product.options.find(opt => opt.name === optionName);
+      if (!option || !option.values.includes(value)) {
+        invalidOptions.push({
+          optionName,
+          providedValue: value,
+          allowedValues: option ? option.values : []
+        });
+      }
+    }
+
+    if (invalidOptions.length > 0) {
+      return res.status(400).json({
+        message: "Invalid option values provided",
+        invalidOptions
+      });
+    }
+
+    // Generate SKU string
+    const skuString = Object.entries(optionValues)
+      .map(([_, value]) => value.substring(0, 2).toUpperCase())
+      .join('-');
+    const uniqueSku = `${product.name.substring(0, 2).toUpperCase()}-${skuString}`;
+
+    // Check if SKU with these options already exists
+    const existingSku = product.skus.find(sku => 
+      Object.entries(optionValues).every(([key, value]) => 
+        sku.optionValues[key] === value
+      )
+    );
+
+    if (existingSku) {
+      return res.status(400).json({
+        message: "SKU with these options already exists",
+        existingSku
+      });
+    }
+
     const newSKU = {
-      sku,
+      sku: uniqueSku,
       quantity,
       price,
       optionValues
     };
 
-    const existingSkuIndex = product.skus.findIndex(s => s.sku === sku);
-    if (existingSkuIndex !== -1) {
-      product.skus[existingSkuIndex] = newSKU;
-    } else {
-      product.skus.push(newSKU);
-    }
+    product.skus.push(newSKU);
+    await product.save();
 
-    const savedProduct = await product.save();
-    res.status(201).json(savedProduct);
+    res.status(201).json({
+      message: "SKU created successfully",
+      sku: newSKU
+    });
   } catch (error) {
     res.status(500).json({ message: "Error creating SKU", error });
   }
@@ -219,7 +292,8 @@ module.exports = {
   deleteProduct,
   getGlobalProducts,
   getProductById,
-  createSKU,
+  getProductOptions,
+  createSKUFromOptions,
   getSKUsForProduct,
   getAvailableProducts,
   createOrder
