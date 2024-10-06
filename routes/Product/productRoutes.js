@@ -15,17 +15,7 @@ const { jwtAuthMiddleware } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-<<<<<<< Updated upstream
-// SKU Routes
-router.post("/:sku", createSKU);  // Route to create a SKU
-router.put("/sku/:id", jwtAuthMiddleware, editSKU);  // Route to edit SKU
-
-// Existing product routes
-router.post("/profile/:id", jwtAuthMiddleware, createAddToCart);
-router.post("/", createGlobleProduct);
-=======
 router.post("/", createGlobalProduct);
->>>>>>> Stashed changes
 router.get("/", getGlobalProducts);
 router.get("/available", getAvailableProducts);
 router.get("/:id", getProductById);
