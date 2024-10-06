@@ -113,7 +113,7 @@ const getProductById = async (req, res) => {
   }
 };
 
-// Get product options
+// Controller functions
 const getProductOptions = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -140,7 +140,7 @@ const getProductOptions = async (req, res) => {
   }
 };
 
-// Create SKU from options
+
 const createSKUFromOptions = async (req, res) => {
   try {
     const { productId } = req.params; // Get product ID from URL parameters
@@ -228,43 +228,83 @@ const createSKUFromOptions = async (req, res) => {
 };
 
 
-// Get cart items for the logged-in user
-const getCartItems = async (req, res) => {
+
+
+const getSKUsForProduct = async (req, res) => {
   try {
-    const userId = req.user.id; // Assuming the user ID is stored in req.user after authentication
-
-    // Fetch items from the AddToCart collection for the user
-    const cartItems = await AddToCart.find({ createdBy: userId })
-      .populate('product', 'name imgUrl price') // Populate product details
-      .exec();
-
-    if (!cartItems || cartItems.length === 0) {
-      return res.status(404).json({ message: "Cart is empty" });
+    const { productId } = req.params;
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
     }
-
-    // Calculate total price for the cart
-    const totalAmount = cartItems.reduce((total, item) => {
-      return total + (item.quantity * item.product.price);
-    }, 0);
-
-    res.status(200).json({
-      items: cartItems,
-      totalAmount
-    });
+    res.status(200).json(product.skus);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving cart items", error });
+    res.status(500).json({ message: "Error fetching SKUs", error });
   }
 };
 
+// Get all available products (products with SKUs having quantity > 0)
+const getAvailableProducts = async (req, res) => {
+  try {
+    const availableProducts = await Product.find({
+      "skus": { $elemMatch: { "quantity": { $gt: 0 } } }
+    });
+    res.status(200).json(availableProducts);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching available products", error });
+  }
+};
+
+// Create an order
+const createOrder = async (req, res) => {
+  try {
+    const { items } = req.body;
+    const userId = req.user.id;
+
+    let totalAmount = 0;
+    for (let item of items) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({ message: `Product ${item.product} not found` });
+      }
+
+      const sku = product.skus.find(s => s.sku === item.sku);
+      if (!sku) {
+        return res.status(404).json({ message: `SKU ${item.sku} not found for product ${item.product}` });
+      }
+
+      if (sku.quantity < item.quantity) {
+        return res.status(400).json({ message: `Insufficient stock for SKU ${item.sku}` });
+      }
+
+      sku.quantity -= item.quantity;
+      await product.save();
+
+      totalAmount += sku.price * item.quantity;
+    }
+
+    const newOrder = await Order.create({
+      user: userId,
+      items,
+      totalAmount
+    });
+
+    res.status(201).json(newOrder);
+  } catch (error) {
+    res.status(500).json({ message: "Error creating order", error });
+  }
+};
 
 module.exports = {
   createGlobalProduct,
-  getGlobalProducts,
   createAddToCart,
   editProduct,
   deleteProduct,
+  getGlobalProducts,
   getProductById,
   getProductOptions,
   createSKUFromOptions,
-  getCartItems
+  getSKUsForProduct,
+  getAvailableProducts,
+  createOrder
 };
