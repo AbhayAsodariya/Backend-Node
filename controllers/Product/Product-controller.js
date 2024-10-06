@@ -203,7 +203,7 @@ const createSKUFromOptions = async (req, res) => {
       });
     }
 
-    // Generate a unique SKU string from the option values
+    // Generate a unique SKU string from the option values if SKU doesn't exist
     const skuString = Object.entries(optionValues)
       .map(([_, value]) => value.substring(0, 2).toUpperCase())
       .join('-');
@@ -230,6 +230,8 @@ const createSKUFromOptions = async (req, res) => {
     res.status(500).json({ message: "Error creating or updating SKU", error });
   }
 };
+
+
 
 
 
