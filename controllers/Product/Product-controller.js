@@ -190,13 +190,13 @@ const createSKUFromOptions = async (req, res) => {
       .join('-');
     const uniqueSku = `${product.name.substring(0, 2).toUpperCase()}-${skuString}`;
 
-    // Check if SKU with the generated SKU string already exists in the current product
+    // Check if SKU with the generated SKU string already exists
     const existingSku = product.skus.find(sku => sku.sku === uniqueSku);
 
     if (existingSku) {
-      // If SKU exists, update its quantity and price
-      existingSku.quantity += quantity; // Add to existing quantity
-      existingSku.price = price; // Update the price
+      // If SKU exists, replace its quantity and price
+      existingSku.quantity = quantity; // Replace existing quantity
+      existingSku.price = price; // Replace the price
       await product.save(); // Save the updated product
 
       return res.status(200).json({
@@ -226,8 +226,6 @@ const createSKUFromOptions = async (req, res) => {
     res.status(500).json({ message: "Error creating or updating SKU", error });
   }
 };
-
-
 
 
 const getSKUsForProduct = async (req, res) => {
