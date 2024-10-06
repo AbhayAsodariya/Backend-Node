@@ -143,15 +143,16 @@ const getProductOptions = async (req, res) => {
 
 const createSKUFromOptions = async (req, res) => {
   try {
-    const { productId } = req.params;
-    const { optionValues, quantity, price } = req.body;
+    const { productId } = req.params; // Get product ID from URL parameters
+    const { optionValues, quantity, price } = req.body; // Get optionValues, quantity, and price from request body
 
+    // Find the product by ID
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Validate all required options are provided
+    // Validate that all required options are provided in optionValues
     const missingOptions = product.options
       .map(option => option.name)
       .filter(optionName => !optionValues[optionName]);
@@ -163,7 +164,7 @@ const createSKUFromOptions = async (req, res) => {
       });
     }
 
-    // Validate option values
+    // Validate that provided option values are valid
     const invalidOptions = [];
     for (const [optionName, value] of Object.entries(optionValues)) {
       const option = product.options.find(opt => opt.name === optionName);
@@ -183,7 +184,7 @@ const createSKUFromOptions = async (req, res) => {
       });
     }
 
-    // Check if SKU with these options already exists
+    // Check if a SKU with these option values already exists
     const existingSku = product.skus.find(sku =>
       Object.entries(optionValues).every(([key, value]) =>
         sku.optionValues[key] === value
@@ -191,10 +192,10 @@ const createSKUFromOptions = async (req, res) => {
     );
 
     if (existingSku) {
-      // Replace the quantity and price of the existing SKU
-      existingSku.quantity = quantity; // Replace existing quantity
-      existingSku.price = price; // Replace the price
-      await product.save();
+      // If SKU exists, replace its quantity and price
+      existingSku.quantity = quantity;
+      existingSku.price = price;
+      await product.save(); // Save the updated product
 
       return res.status(200).json({
         message: "SKU updated successfully",
@@ -202,12 +203,13 @@ const createSKUFromOptions = async (req, res) => {
       });
     }
 
-    // If SKU does not exist, create a new one
+    // Generate a unique SKU string from the option values
     const skuString = Object.entries(optionValues)
       .map(([_, value]) => value.substring(0, 2).toUpperCase())
       .join('-');
     const uniqueSku = `${product.name.substring(0, 2).toUpperCase()}-${skuString}`;
 
+    // Create a new SKU object
     const newSKU = {
       sku: uniqueSku,
       quantity,
@@ -215,17 +217,20 @@ const createSKUFromOptions = async (req, res) => {
       optionValues
     };
 
+    // Add the new SKU to the product
     product.skus.push(newSKU);
-    await product.save();
+    await product.save(); // Save the updated product with the new SKU
 
     res.status(201).json({
       message: "SKU created successfully",
       sku: newSKU
     });
   } catch (error) {
+    // Handle any errors that occur during the process
     res.status(500).json({ message: "Error creating or updating SKU", error });
   }
 };
+
 
 
 // Get all SKUs for a product
