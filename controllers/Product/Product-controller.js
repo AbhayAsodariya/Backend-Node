@@ -190,7 +190,7 @@ const createSKUFromOptions = async (req, res) => {
       .join('-');
     const uniqueSku = `${product.name.substring(0, 2).toUpperCase()}-${skuString}`;
 
-    // Check if SKU with the generated SKU string already exists
+    // Check if SKU with the generated SKU string already exists in the same product
     const existingSku = product.skus.find(sku => sku.sku === uniqueSku);
 
     if (existingSku) {
@@ -202,6 +202,16 @@ const createSKUFromOptions = async (req, res) => {
       return res.status(200).json({
         message: "SKU updated successfully",
         sku: existingSku
+      });
+    }
+
+    // Check if the SKU exists in any product
+    const skuExistsInAnyProduct = await Product.exists({ "skus.sku": uniqueSku });
+
+    if (skuExistsInAnyProduct) {
+      return res.status(400).json({
+        message: "SKU already exists in another product",
+        sku: uniqueSku
       });
     }
 
@@ -223,9 +233,16 @@ const createSKUFromOptions = async (req, res) => {
     });
   } catch (error) {
     // Handle any errors that occur during the process
+    if (error.code === 11000) { // Duplicate key error
+      return res.status(400).json({
+        message: "Duplicate SKU detected. Please provide a unique SKU.",
+        error
+      });
+    }
     res.status(500).json({ message: "Error creating or updating SKU", error });
   }
 };
+
 
 
 const getSKUsForProduct = async (req, res) => {
