@@ -18,7 +18,6 @@ const skuSchema = new mongoose.Schema({
   sku: {
     type: String,
     required: true,
-    unique: true,
     default: () => uuidv4()
   },
   quantity: {
@@ -63,6 +62,9 @@ const productSchema = new mongoose.Schema({
   options: [optionSchema],
   skus: [skuSchema]
 });
+
+// Add a compound index for unique SKU within the same product
+productSchema.index({ "skus.sku": 1, _id: 1 }, { unique: true });
 
 // AddToCart Schema
 const addToCartSchema = new mongoose.Schema({

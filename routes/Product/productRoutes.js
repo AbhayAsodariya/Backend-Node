@@ -1,33 +1,43 @@
 const express = require("express");
+const router = express.Router();
 const {
-  createAddToCart,
-  getProductById,
-  editProduct,
-  deleteProduct,
   createGlobalProduct,
   getGlobalProducts,
+  createAddToCart,
+  editProduct,
+  deleteProduct,
+  getProductById,
   getProductOptions,
   createSKUFromOptions,
-  getSKUsForProduct,
-  getAvailableProducts,
-  createOrder
-} = require("../../controllers/Product/Product-controller");
-const { jwtAuthMiddleware } = require("../../middleware/authMiddleware");
+  getCartItems,
+} = require("../../controllers/Product/Product");
 
-const router = express.Router();
-
+// Route to create a new product
 router.post("/", createGlobalProduct);
-router.get("/", getGlobalProducts);
-router.get("/available", getAvailableProducts);
-router.get("/:id", getProductById);
-router.post("/:id", editProduct);
-router.delete("/:id", deleteProduct);
-router.get("/:productId/options", getProductOptions);
-router.post("/:productId/sku-from-options", createSKUFromOptions);
-router.get("/:productId/skus", getSKUsForProduct);
 
-// Protected routes
-router.post("/addtocart/:id", jwtAuthMiddleware, createAddToCart);
-router.post("/order", jwtAuthMiddleware, createOrder);
+// Route to get all products
+router.get("/", getGlobalProducts);
+
+// Route to get a specific product by ID
+router.get("/:id", getProductById);
+
+// Route to edit a specific product
+router.post("/:id/edit", editProduct);
+
+// Route to delete a product
+router.delete("/:id", deleteProduct);
+
+// Route to get options of a product
+router.get("/:productId/options", getProductOptions);
+
+// Route to create or update SKU from options
+router.post("/:productId/skus", createSKUFromOptions);
+
+// Route to add a product to the cart
+router.post("/:id/add-to-cart", createAddToCart);
+
+// Route to get cart items for the logged-in user
+router.get("/cart", getCartItems);
+
 
 module.exports = router;
