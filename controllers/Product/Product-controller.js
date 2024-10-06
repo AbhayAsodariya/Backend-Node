@@ -203,7 +203,8 @@ const createSKUFromOptions = async (req, res) => {
       });
     }
 
-    // Generate a unique SKU string from the option values if SKU doesn't exist
+    // If SKU doesn't exist, create a new one
+    // Generate a unique SKU string from the option values
     const skuString = Object.entries(optionValues)
       .map(([_, value]) => value.substring(0, 2).toUpperCase())
       .join('-');
@@ -217,9 +218,9 @@ const createSKUFromOptions = async (req, res) => {
       optionValues
     };
 
-    // Add the new SKU to the product
+    // Add the new SKU to the product's skus array
     product.skus.push(newSKU);
-    await product.save(); // Save the updated product with the new SKU
+    await product.save(); // Save the product with the new SKU
 
     res.status(201).json({
       message: "SKU created successfully",
@@ -230,6 +231,7 @@ const createSKUFromOptions = async (req, res) => {
     res.status(500).json({ message: "Error creating or updating SKU", error });
   }
 };
+
 
 
 
