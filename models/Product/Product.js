@@ -1,25 +1,16 @@
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 
-// Category Schema
-const categorySchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  description: String
-});
-
 // Option Schema
 const optionSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true
   },
-  value: {
+  values: [{
     type: String,
     required: true
-  }
+  }]
 });
 
 // SKU Schema
@@ -35,18 +26,20 @@ const skuSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    required: true
+  price: {
+    type: Number,
+    required: true,
+    min: 0
   },
-  category: categorySchema,
-  options: [optionSchema]
+  optionValues: {
+    type: Map,
+    of: String
+  }
 });
 
-// Base Product Schema
-const baseProductSchema = new mongoose.Schema({
-  productName: {
+// Product Schema
+const productSchema = new mongoose.Schema({
+  name: {
     type: String,
     required: true,
   },
@@ -59,31 +52,34 @@ const baseProductSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-  ImgUrl: {
+  imgUrl: {
     type: String,
     required: true,
+  },
+  category: {
+    type: String,
+    required: true,
+  },
+  options: [optionSchema],
+  skus: [skuSchema]
+});
+
+// AddToCart Schema
+const addToCartSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true
   },
   sku: {
     type: String,
-    required: true,
-    unique: true,
-    default: () => uuidv4()
+    required: true
   },
-  category: categorySchema,
-  availableOptions: [{
-    name: String,
-    values: [String]
-  }]
-});
-
-// Schema for Global Product
-const productSchema = new mongoose.Schema({
-  ...baseProductSchema.obj,
-});
-
-// Schema for Product Add to Cart with `createdBy` field
-const productAddToCartSchema = new mongoose.Schema({
-  ...baseProductSchema.obj,
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Person",
@@ -91,9 +87,36 @@ const productAddToCartSchema = new mongoose.Schema({
   },
 });
 
+// Order Schema
+const orderSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Person',
+    required: true
+  },
+  items: [addToCartSchema],
+  totalAmount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  status: {
+    type: String,
+    enum: ['Pending', 'Processing', 'Shipped', 'Delivered'],
+    default: 'Pending'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const Product = mongoose.model('Product', productSchema);
+const AddToCart = mongoose.model('AddToCart', addToCartSchema);
+const Order = mongoose.model('Order', orderSchema);
+
 module.exports = {
-  Product: mongoose.model("Product", productSchema),
-  ProductAddToCart: mongoose.model("ProductAddToCart", productAddToCartSchema),
-  SKU: mongoose.model("SKU", skuSchema),
-  Category: mongoose.model("Category", categorySchema)
+  Product,
+  AddToCart,
+  Order
 };
