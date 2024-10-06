@@ -116,7 +116,9 @@ const getProductById = async (req, res) => {
 // Create SKU for a product
 const createSKU = async (req, res) => {
   try {
-    const { productId, sku, quantity, price, optionValues } = req.body;
+    const productId = req.params.productId; // Get productId from URL parameter
+    const { sku, quantity, price, optionValues } = req.body;
+    
     const product = await Product.findById(productId);
     
     if (!product) {

@@ -21,7 +21,7 @@ router.get("/available", getAvailableProducts);
 router.get("/:id", getProductById);
 router.post("/:id", editProduct);
 router.delete("/:id", deleteProduct);
-router.post("/sku", createSKU);
+router.post("/:productId/sku", createSKU);
 router.get("/:productId/skus", getSKUsForProduct);
 
 // Protected routes
