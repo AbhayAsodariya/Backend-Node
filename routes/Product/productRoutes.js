@@ -11,6 +11,7 @@ const {
   createSKUFromOptions,
   getCartItems,
 } = require("../../controllers/Product/Product");
+const { jwtAuthMiddleware } = require("../../middleware/authMiddleware");
 
 // Route to create a new product
 router.post("/", createGlobalProduct);
@@ -34,7 +35,7 @@ router.get("/:productId/options", getProductOptions);
 router.post("/:productId/skus", createSKUFromOptions);
 
 // Route to add a product to the cart
-router.post("/:id/add-to-cart", createAddToCart);
+router.post("/:id/add-to-cart", jwtAuthMiddleware, createAddToCart);
 
 // Route to get cart items for the logged-in user
 router.get("/cart", getCartItems);
