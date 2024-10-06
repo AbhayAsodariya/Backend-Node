@@ -117,26 +117,29 @@ const getProductById = async (req, res) => {
 const getProductOptions = async (req, res) => {
   try {
     const { productId } = req.params;
-    
+
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Return product details and options
+    // Return product details and options, including quantity and price for each SKU
     res.status(200).json({
       productId: product._id,
       name: product.name,
       options: product.options,
       existingSKUs: product.skus.map(sku => ({
         sku: sku.sku,
-        optionValues: sku.optionValues
+        optionValues: sku.optionValues,
+        quantity: sku.quantity,  // Include quantity
+        price: sku.price  // Include price
       }))
     });
   } catch (error) {
     res.status(500).json({ message: "Error fetching product options", error });
   }
 };
+
 
 const createSKUFromOptions = async (req, res) => {
   try {
