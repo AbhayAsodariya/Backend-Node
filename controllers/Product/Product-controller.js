@@ -58,18 +58,31 @@ const createAddToCart = async (req, res) => {
 // Edit product using POST
 const editProduct = async (req, res) => {
   try {
+    const productId = req.params.id;
+    
+    // First, get the existing product
+    const existingProduct = await Product.findById(productId);
+    
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    
+    const updatedFields = req.body;
+    
+    // Check if the product name is being updated
+    if (updatedFields.name && updatedFields.name !== existingProduct.name) {
+      // Clear all SKUs if the name is changing
+      updatedFields.skus = [];
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+      productId,
+      updatedFields,
       {
         new: true,
         runValidators: true,
       }
     );
-
-    if (!updatedProduct) {
-      return res.status(404).json({ message: "Product not found" });
-    }
 
     res.status(200).json({
       message: "Product updated successfully",
